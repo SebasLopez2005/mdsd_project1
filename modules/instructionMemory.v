@@ -59,17 +59,45 @@ module instructionMemory (
         sumIntegersProgram[14] = 16'b1110_0000_0000_0000;  // HALT
     end
 
-    reg [15:0] squareOfNProgram [0:127];
-    initial begin
-        squareOfNProgram[0] = 16'b0010000000000001;
-        squareOfNProgram[1] = 16'b0010000000000010;
-        squareOfNProgram[2] = 16'b0010000000000011;
-        squareOfNProgram[3] = 16'b0010000000000100;
-        squareOfNProgram[4] = 16'b0010000000000101;
-        squareOfNProgram[5] = 16'b0010000000000110;
-        squareOfNProgram[6] = 16'b0010000000000111;
-        squareOfNProgram[7] = 16'b0010000000001000;
+   module squaredOfNProgram (
+    input [7:0] address,
+    output reg [31:0] instruction
+);
+    always @(address) begin
+        case (address)
+            // Program 2: Compute square of N
+            //| Step | Instruction | Binary (16-bit) | Hex | Description |
+            //| 1 | INPUT → R1 | 0001_0001_0000_0000 | 0x1100 | Load external input (N) into R1 |
+            8'h00: instruction = 32'b00010001_00000000_00000000_00000000; // R1 = INPUT
+
+            //| 2 | R2 ← R1 | 0000_0010_0000_0001 | 0x0201 | Copy input (R1) into R2 |
+            8'h01: instruction = 32'b00000010_00000001_00000001_00000000; // R2 = R1
+
+            //| 3 | R3 ← R1 * R2 | 0011_0011_0010_0000 | 0x3320 | Square input (N) |
+            8'h02: instruction = 32'b00110011_00100000_00000000_00000000; // R3 = R1 * R2
+
+            //| 4 | R4 ← 255 | 0000_0100_1111_1111 | 0x04FF | Load maximum value (255) into R4 |
+            8'h03: instruction = 32'b00000100_11111111_00000000_00000000; // R4 = 255
+
+            //| 5 | R5 ← (R3 > R4) | 1011_0101_0011_0100 | 0xB534 | Compare square result to 255 |
+            8'h04: instruction = 32'b10110101_00110100_00000000_00000000; // R5 = (R3 > R4)
+
+            //| 6 | IF R5 JUMP +1 | 1100_0000_0000_0001 | 0xC001 | If R3 > R4, jump to cap |
+            8'h05: instruction = 32'b11000000_00000001_00000000_00000000; // If overflow, jump
+
+            //| 7 | R3 ← 255 | 0010_0011_0100_0000 | 0x2340 | Cap square result at 255 |
+            8'h06: instruction = 32'b00100011_01000000_00000000_00000000; // R3 = 255
+
+            //| 8 | R6 ← R3 | 0010_1110_0011_0000 | 0x2E30 | Copy final result to R6 |
+            8'h07: instruction = 32'b00101110_00110000_00000000_00000000; // R6 = R3
+
+            //| 9 | HALT | 1110_0000_0000_0000 | 0xE000 | End program |
+            8'h08: instruction = 32'b11100000_00000000_00000000_00000000; // HALT
+
+            default: instruction = 32'b00000000_00000000_00000000_00000000; // NOP (no operation)
+        endcase
     end
+endmodule
 
 
 
